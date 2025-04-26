@@ -8,18 +8,19 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<?import javafx.scene.layout.StackPane?>
 <TabPane prefHeight="575.0" prefWidth="850.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.iit.MainController">
     <Tab text="Import Transactions">
         <VBox spacing="10" style="-fx-padding: 10;">
-            <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="59.0" prefWidth="745.0" text="JFXGDTS" textAlignment="CENTER">
+            <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="60.0" prefWidth="821.0" text="JFXGDTS" textAlignment="CENTER">
                 <font>
                     <Font name="Arial Rounded MT Bold" size="36.0" />
                 </font>
             </Label>
+         <Label text="Select Your CSV for Tax Calculation" />
             <HBox spacing="10">
                 <Label text="Transaction File Path:" />
                 <TextField fx:id="filePathField" prefWidth="400" />
@@ -59,10 +60,7 @@
                 </TableView>
 
                 <!-- Net Profit Summary Label (Overlay at bottom) -->
-                <Label fx:id="netProfitSummaryLabel"
-                       alignment="CENTER_RIGHT"
-                       style="-fx-background-color: rgba(230,230,230,0.8); -fx-padding: 5; -fx-font-weight: bold;"
-                       StackPane.alignment="BOTTOM_RIGHT" />
+                <Label fx:id="netProfitSummaryLabel" alignment="CENTER_RIGHT" style="-fx-background-color: rgba(230,230,230,0.8); -fx-padding: 5; -fx-font-weight: bold;" StackPane.alignment="BOTTOM_RIGHT" />
             </StackPane>
             <HBox spacing="10">
                 <Button fx:id="editButton" disable="true" onAction="#handleEdit" style="-fx-background-color: #c76f04; -fx-text-fill: #ffffff;" text="Edit Selected" />
