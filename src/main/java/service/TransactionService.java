@@ -8,8 +8,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Service class handling business logic for transaction processing.
+ */
 public class TransactionService {
 
+    /**
+     * Imports transactions from a CSV file.
+     */
     public List<Transaction> importTransactionsFromFile(String filePath) throws IOException {
         List<Transaction> transactions = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
@@ -18,6 +24,7 @@ public class TransactionService {
                 String[] parts = line.split(",");
                 if (parts.length == 7) {
                     try {
+                        // Parse transaction data from CSV line
                         String billNumber = parts[0].trim();
                         String itemCode = parts[1].trim();
                         double internalPrice = Double.parseDouble(parts[2].trim());
@@ -26,6 +33,7 @@ public class TransactionService {
                         double discount = Double.parseDouble(parts[5].trim());
                         int checksum = Integer.parseInt(parts[6].trim());
 
+                        // Create and add new transaction
                         Transaction transaction = new Transaction(
                                 billNumber, itemCode, internalPrice, salePrice,
                                 quantity, discount, checksum);
@@ -39,6 +47,9 @@ public class TransactionService {
         return transactions;
     }
 
+    /**
+     * Validates transactions.
+     */
     public void validateTransactions(List<Transaction> transactions) {
         for (Transaction transaction : transactions) {
             boolean isValid = true;
@@ -72,7 +83,11 @@ public class TransactionService {
         }
     }
 
+    /**
+     * Calculates a checksum for transaction validation.
+     */
     public int calculateChecksum(Transaction transaction) {
+        // Create a string representation of key transaction data
         String lineData = String.format("Item: %s, Internal Price: %.2f, Sale Price: %.2f, Quantity: %d, Discount: %.2f",
                 transaction.getItemCode(), transaction.getInternalPrice(),
                 transaction.getSalePrice(), transaction.getQuantity(),
@@ -95,6 +110,9 @@ public class TransactionService {
         return capitalCount + simpleCount + numberCount;
     }
 
+    /**
+     * Calculates profit for each transaction.
+     */
     public void calculateProfits(List<Transaction> transactions) {
         for (Transaction transaction : transactions) {
             double discountedRevenue = transaction.getSalePrice() *
@@ -106,15 +124,22 @@ public class TransactionService {
         }
     }
 
+    /**
+     * Removes transactions with zero profit.
+     */
     public void removeZeroProfitTransactions(List<Transaction> transactions) {
         transactions.removeIf(transaction ->
                 transaction.getProfit() != null && transaction.getProfit() == 0);
     }
 
+    /**
+     * Calculates tax based on transaction profits.
+     */
     public TaxCalculationResult calculateTax(List<Transaction> transactions, double taxRate) {
         double totalProfit = 0;
         double totalLoss = 0;
 
+        // Sum profits and losses from valid transactions
         for (Transaction transaction : transactions) {
             if ("Valid".equals(transaction.getStatus())) {
                 if (transaction.getProfit() > 0) {
@@ -125,12 +150,16 @@ public class TransactionService {
             }
         }
 
+        // Calculate net profit and tax
         double netProfit = totalProfit - totalLoss;
         double tax = netProfit * taxRate / 100;
 
         return new TaxCalculationResult(totalProfit, totalLoss, netProfit, tax);
     }
 
+    /**
+     * Inner class representing the result of tax calculation.
+     */
     public static class TaxCalculationResult {
         private final double totalProfit;
         private final double totalLoss;
@@ -145,7 +174,7 @@ public class TransactionService {
             this.tax = tax;
         }
 
-        // Getters
+        // Getters for tax calculation results
         public double getTotalProfit() { return totalProfit; }
         public double getTotalLoss() { return totalLoss; }
         public double getNetProfit() { return netProfit; }

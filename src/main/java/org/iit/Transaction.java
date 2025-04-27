@@ -2,7 +2,12 @@ package org.iit;
 
 import javafx.beans.property.*;
 
+/**
+ * Model class representing a transaction in the tax system.
+ * Uses JavaFX properties for observable data binding.
+ */
 public class Transaction {
+    // Properties for transaction data
     private final StringProperty billNumber;
     private final StringProperty itemCode;
     private final DoubleProperty internalPrice;
@@ -13,6 +18,9 @@ public class Transaction {
     private final DoubleProperty profit;
     private final StringProperty status;
 
+    /**
+     * Constructs a new Transaction with the given parameters.
+     */
     public Transaction(String billNumber, String itemCode, double internalPrice, double salePrice, int quantity, double discount, int checksum) {
         this.billNumber = new SimpleStringProperty(billNumber);
         this.itemCode = new SimpleStringProperty(itemCode);

@@ -17,7 +17,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Controller class for the main application view.
+ * Handles all user interactions and business logic for the tax system.
+ */
+
 public class MainController {
+    // FXML injected UI components
     @FXML private TextField filePathField;
     @FXML private Label importStatusLabel;
     @FXML private TableView<Transaction> transactionsTable;
@@ -45,16 +51,25 @@ public class MainController {
     @FXML private Label netProfitLabel;
     @FXML private Label netProfitSummaryLabel;
 
+
+    // Service layer for business logic
     private final TransactionService transactionService = new TransactionService();
+    // Observable list to hold transaction data for the table
     ObservableList<Transaction> transactions = FXCollections.observableArrayList();
 
+    /**
+     * Initializes the controller after FXML loading.
+     * Sets up table columns and initial UI state.
+     */
     @FXML
     private void initialize() {
+        // Configure the table view
         transactionsTable.setItems(transactions);
         transactionsTable.setEditable(true);
         transactionsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         // Set cell value factories using PropertyValueFactory
+        // Bind table columns to Transaction properties
         billNumberColumn.setCellValueFactory(new PropertyValueFactory<>("billNumber"));
         itemCodeColumn.setCellValueFactory(new PropertyValueFactory<>("itemCode"));
         internalPriceColumn.setCellValueFactory(new PropertyValueFactory<>("internalPrice"));
@@ -73,6 +88,9 @@ public class MainController {
 
     }
 
+    /**
+     * Handles the browse button click to select a transaction file.
+     */
     @FXML
     private void handleBrowse() {
         FileChooser fileChooser = new FileChooser();
@@ -83,6 +101,9 @@ public class MainController {
         }
     }
 
+    /**
+     * Imports transactions from the selected file.
+     */
     @FXML
     void handleImport() {
         String filePath = filePathField.getText();
@@ -98,6 +119,7 @@ public class MainController {
         }
 
         try {
+            // Import transactions and update the table
             List<Transaction> imported = transactionService.importTransactionsFromFile(filePath);
             transactions.setAll(imported);
             importStatusLabel.setText("Successfully imported " + transactions.size() + " transactions.");
@@ -107,17 +129,24 @@ public class MainController {
         }
     }
 
+    /**
+     * Validates all transactions in the table.
+     */
     @FXML
     void handleValidate() {
         transactionService.validateTransactions(transactions);
         updateSummary();
 
+        // Show validation results
         long validCount = transactions.stream().filter(t -> t.getStatus().startsWith("Valid")).count();
         long invalidCount = transactions.size() - validCount;
         showAlert("Validation Complete", "Valid records: " + validCount + "\nInvalid records: " + invalidCount);
     }
 
 
+    /**
+     * Handles editing a selected transaction.
+     */
     @FXML
     private void handleEdit() {
         Transaction selectedTransaction = transactionsTable.getSelectionModel().getSelectedItem();
@@ -145,6 +174,7 @@ public class MainController {
         TextField quantityField = new TextField(String.valueOf(selectedTransaction.getQuantity()));
         TextField discountField = new TextField(String.valueOf(selectedTransaction.getDiscount()));
 
+        // Add form fields to grid
         grid.add(new Label("Bill Number:"), 0, 0);
         grid.add(billNumberField, 1, 0);
         grid.add(new Label("Item Code:"), 0, 1);
@@ -164,6 +194,7 @@ public class MainController {
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == saveButtonType) {
                 try {
+                    // Create updated transaction from form data
                     String billNumber = billNumberField.getText();
                     String itemCode = itemCodeField.getText();
                     double internalPrice = Double.parseDouble(internalPriceField.getText());
@@ -191,6 +222,7 @@ public class MainController {
             return null;
         });
 
+        // Show dialog and update table if saved
         Optional<Transaction> result = dialog.showAndWait();
         result.ifPresent(updatedTransaction -> {
             int selectedIndex = transactionsTable.getSelectionModel().getSelectedIndex();
@@ -199,6 +231,9 @@ public class MainController {
         });
     }
 
+    /**
+     * Deletes the selected transaction from the table.
+     */
     @FXML
     private void handleDelete() {
         Transaction selectedTransaction = transactionsTable.getSelectionModel().getSelectedItem();
@@ -208,6 +243,9 @@ public class MainController {
         }
     }
 
+    /**
+     * Calculates profit for all transactions.
+     */
     @FXML
     void handleCalculateProfit() {
         transactionService.calculateProfits(transactions);
@@ -215,6 +253,9 @@ public class MainController {
         updateSummary();
     }
 
+    /**
+     * Removes transactions with zero profit.
+     */
     @FXML
     void handleRemoveZeroProfit() {
         if (transactions.stream().noneMatch(t -> t.getProfit() != null)) {
@@ -227,6 +268,9 @@ public class MainController {
         showAlert("Success", "Removed all transactions with zero profit.");
     }
 
+    /**
+     * Calculates tax based on the entered tax rate.
+     */
     @FXML
     void handleCalculateTax() {
         try {
@@ -237,6 +281,7 @@ public class MainController {
                 return;
             }
 
+            // Calculate tax and update UI
             TaxCalculationResult result = transactionService.calculateTax(transactions, taxRate);
 
             totalProfitLabel.setText(String.format("Total Profit: Rs.%.2f", result.getTotalProfit()));
@@ -249,6 +294,9 @@ public class MainController {
         }
     }
 
+    /**
+     * Saves transactions to a CSV file.
+     */
     @FXML
     private void handleSaveToCSV() {
         if (transactions.isEmpty()) {
@@ -285,15 +333,21 @@ public class MainController {
         }
     }
 
+    /**
+     * Updates the summary labels with current transaction statistics.
+     */
     void updateSummary() {
+        // Calculate record counts
         int total = transactions.size();
         int valid = (int) transactions.stream().filter(t -> t.getStatus().startsWith("Valid")).count();
         int invalid = total - valid;
 
+        // Update count labels
         totalRecordsLabel.setText("Total: " + total);
         validRecordsLabel.setText("Valid: " + valid);
         invalidRecordsLabel.setText("Invalid: " + invalid);
 
+        // Calculate and display net profit
         double netProfit = transactions.stream()
                 .filter(t -> t.getProfit() != null)
                 .mapToDouble(Transaction::getProfit)
@@ -303,6 +357,9 @@ public class MainController {
         transactionsTable.refresh();
     }
 
+    /**
+     * Shows an alert dialog with the given title and message.
+     */
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
